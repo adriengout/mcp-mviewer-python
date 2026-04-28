@@ -14,31 +14,13 @@ def to_list(val):
 @mcp.tool()
 def load_xml(url: str):
     """
-    Charge un fichier de configuration XML d'application WebSIG (mviewer)
-    et indexe en mémoire toutes les couches géographiques et thèmes
-    qu'il référence. Point d'entrée obligatoire de toute session.
+    Charge une config XML mviewer et indexe ses couches/thèmes en mémoire.
+    Point d'entrée obligatoire de toute session.
 
-    QUAND UTILISER :
-    - Au début de la conversation, dès que l'utilisateur fournit une URL
-      de config XML.
-    - Si l'utilisateur change d'application ou veut "recharger".
+    Appeler list_themes juste après pour présenter les catégories à l'utilisateur.
+    Ne pas recharger si un contexte est déjà actif (vérifier avec list_themes).
 
-    QUAND NE PAS UTILISER :
-    - Si un contexte est déjà chargé pour la même URL et que l'utilisateur
-      ne demande pas explicitement de recharger (vérifier avec list_themes
-      ou list_all_layers d'abord). Recharger écrase l'état courant et fait
-      perdre les wfs_url enrichis par get_metadata.
-
-    PARAMÈTRE :
-    - url : URL complète d'un fichier config.xml (commence par http:// ou
-      https://). Ne pas inventer d'URL : elle doit avoir été fournie par
-      l'utilisateur.
-
-    APRÈS APPEL : appeler list_themes pour présenter les grandes
-    catégories à l'utilisateur. Ne jamais répondre à une question
-    "que peux-tu faire ?" sans avoir d'abord listé les thèmes.
-
-    RETOUR : message texte indiquant le nombre de couches indexées.
+    PARAM url : URL du config.xml fournie par l'utilisateur. Ne pas inventer.
     """
     response = httpx.get(url)
     response.raise_for_status()

@@ -26,40 +26,14 @@ def _extract_uri(uris, protocol):
 @mcp.tool()
 def get_metadata(layer_id: str):
     """
-    Récupère les métadonnées descriptives d'une couche via son service
-    CSW et enrichit le contexte avec son URL WFS pour permettre les
-    requêtes spatiales ultérieures.
+    Récupère les métadonnées CSW d'une couche et résout son URL WFS dans
+    le contexte. OBLIGATOIRE avant tout spatial_query.
 
-    QUAND UTILISER :
-    - OBLIGATOIRE avant tout spatial_query sur une couche : c'est
-      cette étape qui résout l'URL WFS et la stocke dans le contexte.
-    - Quand l'utilisateur demande des informations sur une couche
-      ("c'est quoi cette donnée", "qui la produit", "à quelle date").
+    PARAM layer_id : id exact issu de list_layers_by_theme/list_all_layers.
+    Ne jamais inventer.
 
-    QUAND NE PAS UTILISER :
-    - Sur un layer_id qui n'a pas été retourné par list_layers_by_theme
-      ou list_all_layers : NE JAMAIS inventer ni deviner un id.
-
-    PARAMÈTRE :
-    - layer_id : id exact de la couche, tel que retourné par les tools
-      de listing (champ "id"). Sensible à la casse.
-
-    PRÉCONDITION : load_xml doit avoir été appelé et la couche doit
-    exister dans le contexte.
-
-    EFFET DE BORD : enrichit context["layers"] avec wfs_url, wfs_name
-    et obsolete pour la couche concernée. spatial_query utilisera
-    ensuite ces champs automatiquement.
-
-    RETOUR : dict avec
-    - title : titre lisible de la couche
-    - abstract : description (tronquée à 1000 caractères)
-    - date : date de publication des métadonnées
-    - wfs_url : URL de base du service WFS
-    - wfs_name : identifiant qualifié de la couche WFS (ex: "dreal_b:l_plui")
-    - obsolete : True si la couche est marquée comme obsolète. Dans ce
-      cas, l'agent DOIT prévenir l'utilisateur avant de l'utiliser et
-      proposer de chercher une alternative à jour.
+    RETOUR : title, abstract, date, wfs_url, wfs_name, obsolete (bool).
+    Si obsolete=True : avertir l'utilisateur avant utilisation.
     """
     if not context['layers']:
         return "Contexte vide, exécuter load_xml avant"

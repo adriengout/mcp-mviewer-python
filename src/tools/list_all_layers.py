@@ -4,25 +4,11 @@ from shared import mcp, context
 @mcp.tool()
 def list_all_layers():
     """
-    Liste exhaustive de toutes les couches indexées, tous thèmes
-    confondus. Vue plate.
+    Liste plate de toutes les couches, tous thèmes confondus.
 
-    QUAND UTILISER :
-    - Quand l'utilisateur demande explicitement "tout", "la liste
-      complète", "toutes les couches".
-    - Pour une recherche par mot-clé dans les titres quand le thème
-      n'est pas évident a priori.
-    - Pour vérifier si un layer_id mentionné par l'utilisateur existe
-      bien dans le contexte chargé.
-
-    QUAND NE PAS UTILISER :
-    - Comme premier réflexe d'exploration : préférer la séquence
-      list_themes → list_layers_by_theme, plus lisible et moins
-      coûteuse en tokens sur des configs volumineuses.
-
-    PRÉCONDITION : load_xml doit avoir été appelé.
-
-    RETOUR : pour chaque couche, une ligne avec id, titre, URL CSW.
+    À utiliser pour une recherche transversale ou si le thème est inconnu.
+    Préférer list_themes → list_layers_by_theme par défaut (moins verbeux).
+    Précondition : load_xml.
     """
     if not context["layers"]:
         return "Aucun contexte chargé, appelle load_xml d'abord"

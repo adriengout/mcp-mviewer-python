@@ -3,25 +3,13 @@ from shared import mcp, context
 @mcp.tool()
 def list_themes():
     """
-    Liste les thèmes (catégories thématiques de haut niveau) présents
-    dans la configuration chargée. Sert à orienter l'utilisateur vers
-    le bon domaine de données.
+    Liste les thèmes (catégories) disponibles dans la config chargée.
 
-    QUAND UTILISER :
-    - Systématiquement juste après load_xml.
-    - Quand l'utilisateur demande "qu'est-ce qu'il y a", "quels sujets",
-      "quelles thématiques", "que peux-tu m'apprendre sur cette zone".
-    - Quand un nom de thème fourni à list_layers_by_theme renvoie une
-      liste vide : revenir à list_themes pour vérifier l'orthographe.
+    À appeler systématiquement après load_xml, et quand l'utilisateur veut
+    explorer ce qui est disponible. Précondition : load_xml.
 
-    QUAND NE PAS UTILISER :
-    - Pour lister des couches précises (utiliser list_layers_by_theme
-      ou list_all_layers).
-
-    PRÉCONDITION : load_xml doit avoir été appelé.
-
-    RETOUR : liste de noms de thèmes, par exemple
-    ["Environnement", "Risques", "Patrimoine"].
+    RETOUR : liste de noms de thèmes exacts (à passer tels quels à
+    list_layers_by_theme, sensible casse/accents).
     """
     if not context["themes"]:
         return "Aucun contexte chargé, appelle load_xml d'abord"
