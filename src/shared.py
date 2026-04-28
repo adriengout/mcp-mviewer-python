@@ -4,6 +4,7 @@ mcp = FastMCP("mcpWFS")
 
 context = {
     "layers": [],
+    "themes": [],
     "title": None,
 }
 
