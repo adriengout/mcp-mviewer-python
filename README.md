@@ -31,6 +31,7 @@ mcp-mviewer-python
 | `get_metadata` | Récupère les métadonnées CSW d'une couche et résout son URL WFS |
 | `get_bbox` | Calcule une emprise rectangulaire autour d'une commune française |
 | `spatial_query` | Interroge une ou plusieurs couches WFS sur une emprise géographique |
+| `bbox_to_mviewer_url` | Génère un lien mviwer à partir de donnée.s et d'une config xml |
 
 ### Enchaînement typique
 
@@ -42,6 +43,7 @@ mviewer_check(url)
         → get_metadata(layer_id)          ← obligatoire avant spatial_query
           → get_bbox(commune)             ← optionnel, si zone nommée
             → spatial_query(layers, bbox)
+              → bbox_to_mviewer(bbox, layers, config, mode)
 ```
 
 ## Installation
