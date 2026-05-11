@@ -12,6 +12,7 @@ from tools.list_all_layers import list_all_layers
 from tools.get_metadata import get_metadata
 from tools.spatial_query import spatial_query
 from tools.get_bbox import get_bbox
+from tools.bbox_to_mviewer_url import bbox_to_mviewer_url
 
 TOOL_DEFS = [
     {
@@ -61,6 +62,16 @@ TOOL_DEFS = [
             {"name": "tampon_km", "type": "number", "required": False, "default": 2.0, "placeholder": "2.0"},
         ],
     },
+    {
+        "name": "bbox_to_mviewer_url",
+        "description": "Génère un lien MViewer permalink depuis une bbox EPSG:4326 et une liste de couches. Convertit automatiquement en EPSG:3857 et calcule le zoom. À appeler en fin de workflow.",
+        "params": [
+            {"name": "bbox", "type": "json", "required": True, "placeholder": "[lon_min, lat_min, lon_max, lat_max]"},
+            {"name": "layers", "type": "json", "required": True, "placeholder": '["layer_id1", "layer_id2"]'},
+            {"name": "config", "type": "string", "required": False, "placeholder": "https://geobretagne.fr/apps/viz/config.xml"},
+            {"name": "mode", "type": "string", "required": False, "placeholder": "d"},
+        ],
+    },
 ]
 
 TOOL_FUNCS = {
@@ -71,6 +82,7 @@ TOOL_FUNCS = {
     "get_metadata": get_metadata,
     "spatial_query": spatial_query,
     "get_bbox": get_bbox,
+    "bbox_to_mviewer_url": bbox_to_mviewer_url,
 }
 
 _HTML = """<!DOCTYPE html>
@@ -277,9 +289,10 @@ _HTML = """<!DOCTYPE html>
       <div class="workflow-steps">
         <div class="wf-step"><span class="wf-num">1</span><span class="wf-name">load_xml</span><span class="wf-desc">— charger la config</span></div>
         <div class="wf-step"><span class="wf-num">2</span><span class="wf-name">list_themes</span><span class="wf-desc">— explorer les thèmes</span></div>
-        <div class="wf-step"><span class="wf-num">3</span><span class="wf-name">list_layers_by_theme</span><span class="wf-desc">— lister les donnéess</span></div>
+        <div class="wf-step"><span class="wf-num">3</span><span class="wf-name">list_layers_by_theme</span><span class="wf-desc">— lister les couches</span></div>
         <div class="wf-step"><span class="wf-num">4</span><span class="wf-name">get_metadata</span><span class="wf-desc">— résoudre l'URL WFS</span></div>
         <div class="wf-step"><span class="wf-num">5</span><span class="wf-name">spatial_query</span><span class="wf-desc">— interroger les données</span></div>
+        <div class="wf-step"><span class="wf-num">6</span><span class="wf-name">bbox_to_mviewer_url</span><span class="wf-desc">— générer le lien</span></div>
       </div>
     </div>
   </main>
