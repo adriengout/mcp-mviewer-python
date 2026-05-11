@@ -38,8 +38,6 @@ def bbox_to_mviewer_url(
     x = center_lon * 20037508.34 / 180
     y = math.log(math.tan((90 + center_lat) * math.pi / 360)) * 20037508.34 / math.pi
 
-    # Zoom estimé selon la largeur de la bbox (degrés)
-
     config_encoded = quote(config, safe="")
     l_param = ",".join(layers)
 

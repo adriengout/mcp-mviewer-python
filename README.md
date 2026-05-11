@@ -88,6 +88,7 @@ mcp-mviewer-python/
 ├── shared.py                  # Config globale et contexte en mémoire
 ├── playground.py              # Interface web de test
 ├── tools/
+│   ├── bbox_to_mviewer_url.py
 │   ├── load_xml.py
 │   ├── list_themes.py
 │   ├── list_layers_by_theme.py

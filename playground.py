@@ -51,7 +51,9 @@ TOOL_DEFS = [
         "description": "Interroge des donnéess WFS sur une emprise rectangulaire. À appeler après get_metadata.",
         "params": [
             {"name": "layers", "type": "json", "required": True, "placeholder": '["layer_id1", "layer_id2"]'},
-            {"name": "bbox", "type": "json", "required": False, "placeholder": "[lon_min, lat_min, lon_max, lat_max]"},
+            {"name": "wfs_urls", "type": "json", "required": True, "placeholder": '["https://…/wfs", "https://…/wfs"]'},
+            {"name": "wfs_names", "type": "json", "required": False, "placeholder": '["ns:typename1", "ns:typename2"]'},
+            {"name": "bbox", "type": "json", "required": True, "placeholder": "[lon_min, lat_min, lon_max, lat_max]"},
         ],
     },
     {
