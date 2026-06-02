@@ -1,5 +1,66 @@
 from shared import mcp
 import httpx
+import xml.etree.ElementTree as ET
+
+_XSD_NS = "{http://www.w3.org/2001/XMLSchema}"
+_GEOM_KEYWORDS = (
+    "geometry", "polygon", "point", "linestring", "surface",
+    "curve", "ring", "multipolygon", "multipoint", "multilinestring",
+    "multisurface", "multicurve",
+)
+
+
+def _get_geometry_fields(wfs_url: str, typename: str) -> set:
+    """Retourne les noms de champs géométriques via DescribeFeatureType."""
+    params = {
+        "SERVICE": "WFS",
+        "VERSION": "2.0.0",
+        "REQUEST": "DescribeFeatureType",
+        "TYPENAMES": typename,
+    }
+    try:
+        response = httpx.get(wfs_url, params=params, timeout=15)
+        response.raise_for_status()
+        root = ET.fromstring(response.text)
+    except Exception:
+        return set()
+
+    geom_fields = set()
+    for elem in root.iter(f"{_XSD_NS}element"):
+        field_type = elem.get("type", "")
+        field_name = elem.get("name", "")
+        if not field_name or not field_type.startswith("gml:"):
+            continue
+        local = field_type[4:].lower()
+        if any(kw in local for kw in _GEOM_KEYWORDS):
+            geom_fields.add(field_name)
+
+    return geom_fields
+
+
+_COMPACT_PATTERNS = (
+    "nom", "name", "libelle", "titre", "title",
+    "id", "code", "type", "categorie", "category",
+    "surface", "area", "statut", "status", "description",
+    "commune", "site", "zone", "label", "ref",
+)
+
+
+def _is_compact_field(key: str) -> bool:
+    k = key.lower()
+    return any(p in k for p in _COMPACT_PATTERNS)
+
+
+def _filter_properties(props: dict, geom_fields: set, compact: bool) -> dict:
+    result = {k: v for k, v in props.items()
+              if v is not None and v != "" and k not in geom_fields}
+    if not compact:
+        return result
+    filtered = {k: v for k, v in result.items() if _is_compact_field(k)}
+    return filtered if filtered else result
+
+
+_MAX_FEATURES = 20
 
 
 @mcp.tool()
@@ -8,38 +69,24 @@ def spatial_query(
     wfs_urls: list[str],
     bbox: list[float],
     wfs_names: list[str] = None,
+    compact: bool = True,
 ):
-    """
-    Interroge des couches WFS sur une emprise rectangulaire.
-    À appeler en bout de chaîne, après get_metadata sur chaque couche.
-
-    PARAMS :
-    - layers    : liste de layer_id (PAS de wfs_name brut).
-    - wfs_urls  : liste d'URLs WFS, une par couche (même ordre que layers).
-                  Utiliser wfs_url issu de get_metadata.
-    - wfs_names : liste de typenames WFS, une par couche (même ordre que layers).
-                  Utiliser wfs_name issu de get_metadata. Si absent, utilise le layer_id.
-    - bbox      : [lon_min, lat_min, lon_max, lat_max] EPSG:4326 — OBLIGATOIRE.
-                  Issue de get_bbox ou fournie par l'utilisateur.
-
-    LIMITES : 50 features max par couche, timeout 30s. Si total_matched
-    > count, signaler la troncature à l'utilisateur.
-
-    RETOUR : {layer_id: {count, total_matched, features:[{id, properties}]}}.
-    En cas d'erreur sur une couche : {"error": "..."} sans interrompre
-    les autres.
-    """
+    """Requête WFS sur une bbox. Retourne {layer_id: {count, total_matched, features}}.
+    compact=True (défaut) : garde uniquement les champs identifiants (nom, code, type, statut…) en excluant les valeurs vides."""
     bbox_txt = ",".join(str(n) for n in bbox) + ",EPSG:4326"
+    count = _MAX_FEATURES
 
     results = {}
 
     for i, layer in enumerate(layers):
         if i >= len(wfs_urls) or not wfs_urls[i]:
-            results[layer] = {"error": "wfs_url manquante pour cette couche"}
+            results[layer] = {"error": "wfs_url manquante pour cette donnée"}
             continue
 
         lien_wfs = wfs_urls[i]
         typename = (wfs_names[i] if wfs_names and i < len(wfs_names) and wfs_names[i] else None) or layer
+
+        geom_fields = _get_geometry_fields(lien_wfs, typename)
 
         params = {
             "SERVICE": "WFS",
@@ -47,7 +94,7 @@ def spatial_query(
             "REQUEST": "GetFeature",
             "TYPENAMES": typename,
             "outputFormat": "application/json",
-            "COUNT": 50,
+            "COUNT": count,
             "BBOX": bbox_txt,
         }
 
@@ -61,10 +108,7 @@ def spatial_query(
                 "count": len(features),
                 "total_matched": data.get("totalFeatures") or data.get("numberMatched"),
                 "features": [
-                    {
-                        "id": f.get("id"),
-                        "properties": {k: v for k, v in f.get("properties", {}).items() if v is not None},
-                    }
+                    _filter_properties(f.get("properties", {}), geom_fields, compact)
                     for f in features
                 ],
             }

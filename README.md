@@ -1,6 +1,6 @@
 # mcp-mviewer-python
 
-Serveur [MCP (Model Context Protocol)](https://modelcontextprotocol.io) qui expose les configurations [mviewer](https://mviewer.netlify.app) à un agent IA. Il permet d'explorer les couches géographiques, de résoudre leurs métadonnées et d'interroger les données spatiales via WFS, en langage naturel.
+Serveur [MCP (Model Context Protocol)](https://modelcontextprotocol.io) qui expose les configurations [mviewer](https://mviewer.netlify.app) à un agent IA. Il permet d'explorer les données géographiques, de résoudre leurs métadonnées et d'interroger les données spatiales via WFS, en langage naturel.
 
 ## Fonctionnement
 
@@ -10,7 +10,7 @@ Agent IA
    ▼ MCP (streamable-http)
 mcp-mviewer-python
    ├── Charge le config.xml mviewer
-   ├── Indexe thèmes et couches
+   ├── Indexe thèmes et données
    ├── Résout les métadonnées CSW
    └── Exécute des requêtes WFS
          │
@@ -24,13 +24,13 @@ mcp-mviewer-python
 | Outil | Description |
 |---|---|
 | `mviewer_check` | Valide qu'une URL pointe bien vers un config.xml mviewer avant de le charger |
-| `load_xml` | Charge un config.xml et indexe ses couches et thèmes en mémoire |
+| `load_xml` | Charge un config.xml et indexe ses données et thèmes en mémoire |
 | `list_themes` | Liste les thèmes disponibles dans la config chargée |
-| `list_layers_by_theme` | Liste les couches d'un thème donné |
-| `list_all_layers` | Liste toutes les couches, tous thèmes confondus |
-| `get_metadata` | Récupère les métadonnées CSW d'une couche et résout son URL WFS |
+| `list_layers_by_theme` | Liste les données d'un thème donné |
+| `list_all_layers` | Liste toutes les données, tous thèmes confondus |
+| `get_metadata` | Récupère les métadonnées CSW d'une donnée et résout son URL WFS |
 | `get_bbox` | Calcule une emprise rectangulaire autour d'une commune française |
-| `spatial_query` | Interroge une ou plusieurs couches WFS sur une emprise géographique |
+| `spatial_query` | Interroge une ou plusieurs données WFS sur une emprise géographique |
 | `bbox_to_mviewer_url` | Génère un lien mviwer à partir de donnée.s et d'une config xml |
 
 ### Enchaînement typique
@@ -43,7 +43,6 @@ mviewer_check(url)
         → get_metadata(layer_id)          ← obligatoire avant spatial_query
           → get_bbox(commune)             ← optionnel, si zone nommée
             → spatial_query(layers, bbox)
-              → bbox_to_mviewer(bbox, layers, config, mode)
 ```
 
 ## Installation
@@ -105,5 +104,5 @@ mcp-mviewer-python/
 ## Limites
 
 - Le contexte (config chargée) est **en mémoire** : il est réinitialisé au redémarrage et partagé entre toutes les sessions simultanées.
-- `spatial_query` retourne **50 entités maximum** par couche, avec un timeout de 30 secondes.
+- `spatial_query` retourne **50 entités maximum** par donnée, avec un timeout de 30 secondes.
 - `get_bbox` utilise **geo.api.gouv.fr** et ne couvre que les communes françaises.

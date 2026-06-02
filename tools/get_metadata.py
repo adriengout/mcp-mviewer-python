@@ -55,23 +55,13 @@ def _extract_uri(uris, protocol):
 
 @mcp.tool()
 def get_metadata(layer_id: str):
-    """
-    Récupère les métadonnées CSW d'une couche et résout son URL WFS dans
-    le contexte. OBLIGATOIRE avant tout spatial_query.
-
-    PARAM layer_id : id exact issu de list_layers_by_theme/list_all_layers.
-    Ne jamais inventer.
-
-    RETOUR : title, abstract, date, wfs_url, wfs_name, obsolete (bool).
-    Si wfs_url=null : la couche n'a pas de service WFS, spatial_query impossible.
-    Si obsolete=True : avertir l'utilisateur avant utilisation.
-    """
+    """Résout les métadonnées CSW d'une donnée. Retourne title, abstract, date, wfs_url, wfs_name, obsolete."""
     if not context['layers']:
         return "Contexte vide, exécuter load_xml avant"
 
     layer = next((l for l in context['layers'] if l['id'] == layer_id), None)
     if layer is None:
-        return f"Aucune couche trouvée avec l'id '{layer_id}'"
+        return f"Aucune donnée trouvée avec l'id '{layer_id}'"
 
     csw_url = layer['metadata-csw']
 

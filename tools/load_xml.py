@@ -1,3 +1,4 @@
+import re
 import xmltodict
 import httpx
 from shared import mcp, context
@@ -11,17 +12,22 @@ def to_list(val):
         return [val]
     return val
 
+
+def _resolve_config_url(url: str) -> str:
+    """Transforme une URL de carte MViewer en URL de config.
+    Ex: geobretagne.fr/app/lorient/ → geobretagne.fr/app/lorient/apps/default
+    Les URLs déjà pointant vers un fichier de config sont retournées telles quelles.
+    """
+    clean = url.rstrip('/').split('?')[0].split('#')[0]
+    if re.search(r'/app/[\w_-]+$', clean):
+        return clean + '/apps/default.xml'
+    return url
+
+
 @mcp.tool()
 def load_xml(url: str):
-    """
-    Charge une config XML mviewer et indexe ses couches/thèmes en mémoire.
-    Point d'entrée obligatoire de toute session.
-
-    Appeler list_themes juste après pour présenter les catégories à l'utilisateur.
-    Ne pas recharger si un contexte est déjà actif (vérifier avec list_themes).
-
-    PARAM url : URL du config.xml fournie par l'utilisateur. Ne pas inventer.
-    """
+    """Charge un config.xml mviewer et indexe données/thèmes en mémoire. Accepte une URL de config (.xml) ou une URL de carte (/app/<nom>/) — la conversion est automatique. Retourne le nombre de données chargées."""
+    url = _resolve_config_url(url)
     response = httpx.get(url)
     response.raise_for_status()
     data = xmltodict.parse(response.text)
@@ -60,4 +66,4 @@ def load_xml(url: str):
     context["themes"] = [t.get("@name") for t in themes if t.get("@name")]
     context["title"] = config["application"].get("@title")
         
-    return f"{len(layers)} couches chargées"
+    return f"{len(layers)} données chargées"

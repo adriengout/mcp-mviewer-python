@@ -13,21 +13,7 @@ def _to_list(val):
 
 @mcp.tool()
 def check_mviewer(url: str) -> dict:
-    """
-    Vérifie qu'une URL pointe vers une configuration mviewer valide.
-    À appeler AVANT load_xml pour valider une URL fournie par l'utilisateur.
-
-    Critères bloquants :
-    - URL accessible et XML parsable
-    - Racine <config>
-    - Présence de <application> et <themes>
-    - Au moins une couche définie
-
-    PARAM url : URL du config.xml.
-
-    RETOUR : {valid, errors, warnings, summary}.
-    Si valid=True → load_xml peut être appelé en confiance.
-    """
+    """Vérifie qu'une URL est un config.xml mviewer valide. Retourne {valid, errors, warnings, summary}."""
     errors = []
     warnings = []
 
@@ -104,7 +90,7 @@ def check_mviewer(url: str) -> dict:
 
     themes = _to_list(themes_node["theme"])
 
-    # 6. Compter les couches valides
+    # 6. Compter les données valides
     layers_count = 0
     themes_without_layers = []
     layers_without_id = 0
@@ -129,15 +115,15 @@ def check_mviewer(url: str) -> dict:
     if layers_count == 0:
         return {
             "valid": False,
-            "errors": ["Aucune couche détectée dans les thèmes"],
+            "errors": ["Aucune donnée détectée dans les thèmes"],
             "warnings": warnings,
             "summary": None,
         }
 
     if themes_without_layers:
-        warnings.append(f"Thèmes sans couches : {', '.join(themes_without_layers)}")
+        warnings.append(f"Thèmes sans données : {', '.join(themes_without_layers)}")
     if layers_without_id:
-        warnings.append(f"{layers_without_id} couche(s) sans attribut @id")
+        warnings.append(f"{layers_without_id} donnée(s) sans attribut @id")
 
     # 7. Résumé
     app = config.get("application", {})

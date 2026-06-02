@@ -10,25 +10,7 @@ def bbox_to_mviewer_url(
     config: str = "https://geobretagne.fr/apps/viz/config.xml",
     mode: str = "d",
 ) -> str:
-    """
-    Convertit une bbox EPSG:4326 et une liste de layer_id en URL MViewer
-    permalink prête à partager.
-
-    Calcule le centre de la carte en EPSG:3857 et estime le niveau de zoom
-    adapté à l'emprise. À appeler après spatial_query pour proposer un lien
-    de visualisation.
-
-    PARAMS :
-    - bbox    : [lon_min, lat_min, lon_max, lat_max] EPSG:4326
-                (retourné par get_bbox ou fourni par l'utilisateur via la carte)
-    - layers  : liste de layer_id exacts issus de list_layers_by_theme ou
-                list_all_layers. Format avancé : "layerid*style*filtreCQL"
-    - config  : URL du config.xml MViewer
-                (défaut : https://geobretagne.fr/apps/viz/config.xml)
-    - mode    : "d" défaut · "s" simplifié · "u" ultra-simplifié  (défaut : "d")
-
-    RETOUR : URL MViewer complète, encodée, prête à partager.
-    """
+    """Génère une URL MViewer permalink depuis une bbox EPSG:4326 et une liste de layer_id."""
     lon_min, lat_min, lon_max, lat_max = bbox
 
     center_lon = (lon_min + lon_max) / 2

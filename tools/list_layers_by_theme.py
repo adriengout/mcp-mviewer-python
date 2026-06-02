@@ -1,16 +1,8 @@
 from shared import mcp, context
 
 @mcp.tool()
-def list_layers_by_theme(theme : str):
-    """
-    Liste les couches d'un thème donné. Voie d'exploration normale après
-    list_themes.
-
-    PARAM theme : nom EXACT issu de list_themes (pas approchant).
-    Si liste vide retournée, vérifier l'orthographe via list_themes.
-
-    RETOUR : layer_id (à passer à get_metadata), titre, URL CSW.
-    """
+def list_layers_by_theme(theme: str):
+    """Retourne id/titre/URL CSW des données d'un thème (nom exact issu du Contexte pré-chargé)."""
     if not context["layers"]:
         return "Aucun contexte chargé, appelle load_xml d'abord"
     layers = context["layers"]

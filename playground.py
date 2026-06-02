@@ -1,7 +1,8 @@
 import asyncio
 import json
+import os
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse
+from starlette.responses import HTMLResponse, JSONResponse, PlainTextResponse
 
 from shared import mcp, context
 
@@ -66,7 +67,7 @@ TOOL_DEFS = [
     },
     {
         "name": "bbox_to_mviewer_url",
-        "description": "Génère un lien MViewer permalink depuis une bbox EPSG:4326 et une liste de couches. Convertit automatiquement en EPSG:3857 et calcule le zoom. À appeler en fin de workflow.",
+        "description": "Génère un lien MViewer permalink depuis une bbox EPSG:4326 et une liste de données. Convertit automatiquement en EPSG:3857 et calcule le zoom. À appeler en fin de workflow.",
         "params": [
             {"name": "bbox", "type": "json", "required": True, "placeholder": "[lon_min, lat_min, lon_max, lat_max]"},
             {"name": "layers", "type": "json", "required": True, "placeholder": '["layer_id1", "layer_id2"]'},
@@ -291,7 +292,7 @@ _HTML = """<!DOCTYPE html>
       <div class="workflow-steps">
         <div class="wf-step"><span class="wf-num">1</span><span class="wf-name">load_xml</span><span class="wf-desc">— charger la config</span></div>
         <div class="wf-step"><span class="wf-num">2</span><span class="wf-name">list_themes</span><span class="wf-desc">— explorer les thèmes</span></div>
-        <div class="wf-step"><span class="wf-num">3</span><span class="wf-name">list_layers_by_theme</span><span class="wf-desc">— lister les couches</span></div>
+        <div class="wf-step"><span class="wf-num">3</span><span class="wf-name">list_layers_by_theme</span><span class="wf-desc">— lister les données</span></div>
         <div class="wf-step"><span class="wf-num">4</span><span class="wf-name">get_metadata</span><span class="wf-desc">— résoudre l'URL WFS</span></div>
         <div class="wf-step"><span class="wf-num">5</span><span class="wf-name">spatial_query</span><span class="wf-desc">— interroger les données</span></div>
         <div class="wf-step"><span class="wf-num">6</span><span class="wf-name">bbox_to_mviewer_url</span><span class="wf-desc">— générer le lien</span></div>
@@ -510,6 +511,40 @@ async def api_context(request: Request) -> JSONResponse:
         "layers_count": len(context["layers"]),
         "themes": context["themes"],
     })
+
+
+@mcp.custom_route("/mcp/mviewer/context-prompt", methods=["GET"])
+async def context_prompt_endpoint(request: Request) -> PlainTextResponse:
+    """Retourne la section 'Contexte pré-chargé' prête à être injectée dans le prompt système."""
+    if not context["layers"]:
+        return PlainTextResponse("")
+
+    themes = context["themes"]
+    title = context["title"] or "GeoBretagne Viz"
+    config_url = os.getenv("DEFAULT_CONFIG_URL", "https://geobretagne.fr/apps/viz/config.xml")
+    total = len(context["layers"])
+
+    lines = [
+        "---",
+        "",
+        "## Contexte pré-chargé",
+        "",
+        f"**Application** : {title}",
+        f"**URL config** : {config_url}",
+        f"**Total données** : {total}",
+        "",
+        "**Thèmes disponibles** (noms exacts à passer à `list_layers_by_theme`) :",
+    ]
+    for theme in themes:
+        count = sum(1 for l in context["layers"] if l.get("theme") == theme)
+        lines.append(f"- `{theme}` ({count} données)")
+
+    lines += [
+        "",
+        "Pour trouver les données d'un thème, appelle `list_layers_by_theme` avec le nom exact du thème ci-dessus.",
+    ]
+
+    return PlainTextResponse("\n".join(lines))
 
 
 @mcp.custom_route("/mcp/mviewer/playground/api/tool/{tool_name}", methods=["POST"])
