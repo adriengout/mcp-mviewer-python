@@ -12,6 +12,7 @@ from tools.list_layers_by_theme import list_layers_by_theme
 from tools.list_all_layers import list_all_layers
 from tools.get_metadata import get_metadata
 from tools.spatial_query import spatial_query
+from tools.spatial_analysis import spatial_analysis
 from tools.get_bbox import get_bbox
 from tools.bbox_to_mviewer_url import bbox_to_mviewer_url
 
@@ -45,6 +46,13 @@ TOOL_DEFS = [
         "description": "Récupère les métadonnées CSW d'une données et résout son URL WFS. Obligatoire avant spatial_query.",
         "params": [
             {"name": "layer_id", "type": "string", "required": True, "placeholder": "id exact de la données"},
+        ],
+    },
+    {
+        "name": "spatial_analysis",
+        "description": "Scanne toutes les couches du contexte en parallèle et retourne les layer_id ayant des données dans la bbox. À appeler après get_bbox pour identifier les couches pertinentes avant spatial_query.",
+        "params": [
+            {"name": "bbox", "type": "json", "required": True, "placeholder": "[lon_min, lat_min, lon_max, lat_max]"},
         ],
     },
     {
@@ -83,6 +91,7 @@ TOOL_FUNCS = {
     "list_layers_by_theme": list_layers_by_theme,
     "list_all_layers": list_all_layers,
     "get_metadata": get_metadata,
+    "spatial_analysis": spatial_analysis,
     "spatial_query": spatial_query,
     "get_bbox": get_bbox,
     "bbox_to_mviewer_url": bbox_to_mviewer_url,
@@ -293,9 +302,10 @@ _HTML = """<!DOCTYPE html>
         <div class="wf-step"><span class="wf-num">1</span><span class="wf-name">load_xml</span><span class="wf-desc">— charger la config</span></div>
         <div class="wf-step"><span class="wf-num">2</span><span class="wf-name">list_themes</span><span class="wf-desc">— explorer les thèmes</span></div>
         <div class="wf-step"><span class="wf-num">3</span><span class="wf-name">list_layers_by_theme</span><span class="wf-desc">— lister les données</span></div>
-        <div class="wf-step"><span class="wf-num">4</span><span class="wf-name">get_metadata</span><span class="wf-desc">— résoudre l'URL WFS</span></div>
-        <div class="wf-step"><span class="wf-num">5</span><span class="wf-name">spatial_query</span><span class="wf-desc">— interroger les données</span></div>
-        <div class="wf-step"><span class="wf-num">6</span><span class="wf-name">bbox_to_mviewer_url</span><span class="wf-desc">— générer le lien</span></div>
+        <div class="wf-step"><span class="wf-num">4</span><span class="wf-name">get_bbox</span><span class="wf-desc">— calculer l'emprise</span></div>
+        <div class="wf-step"><span class="wf-num">5</span><span class="wf-name">spatial_analysis</span><span class="wf-desc">— trouver les couches pertinentes</span></div>
+        <div class="wf-step"><span class="wf-num">6</span><span class="wf-name">spatial_query</span><span class="wf-desc">— interroger les données</span></div>
+        <div class="wf-step"><span class="wf-num">7</span><span class="wf-name">bbox_to_mviewer_url</span><span class="wf-desc">— générer le lien</span></div>
       </div>
     </div>
   </main>

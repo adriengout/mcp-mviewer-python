@@ -10,6 +10,7 @@ import tools.get_metadata
 import tools.spatial_query
 import tools.get_bbox
 import tools.mviewer_check
+import tools.spatial_analysis
 
 import asyncio
 import traceback

@@ -41,7 +41,7 @@ def load_xml(url: str):
             if isinstance(group, str):
                 continue
             for layer in to_list(group.get("layer")):
-                if isinstance(layer, str) or not layer.get("@metadata-csw"):
+                if isinstance(layer, str) or not layer.get("@id"):
                     continue
                 layers.append({
                     "id": layer.get("@id"),
@@ -52,7 +52,7 @@ def load_xml(url: str):
                     "group": group.get("@name"),
                 })
         for layer in to_list(theme.get("layer")):
-            if isinstance(layer, str) or not layer.get("@metadata-csw"):
+            if isinstance(layer, str) or not layer.get("@id"):
                 continue
             layers.append({
                 "id": layer.get("@id"),
