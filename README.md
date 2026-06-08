@@ -23,26 +23,29 @@ mcp-mviewer-python
 
 | Outil | Description |
 |---|---|
-| `mviewer_check` | Valide qu'une URL pointe bien vers un config.xml mviewer avant de le charger |
+| `check_mviewer` | Valide qu'une URL pointe bien vers un config.xml mviewer avant de le charger |
 | `load_xml` | Charge un config.xml et indexe ses données et thèmes en mémoire |
 | `list_themes` | Liste les thèmes disponibles dans la config chargée |
 | `list_layers_by_theme` | Liste les données d'un thème donné |
 | `list_all_layers` | Liste toutes les données, tous thèmes confondus |
 | `get_metadata` | Récupère les métadonnées CSW d'une donnée et résout son URL WFS |
 | `get_bbox` | Calcule une emprise rectangulaire autour d'une commune française |
+| `spatial_analysis` | Scanne toutes les couches du contexte sur une bbox et retourne les `layer_id` ayant des données dans la zone |
 | `spatial_query` | Interroge une ou plusieurs données WFS sur une emprise géographique |
-| `bbox_to_mviewer_url` | Génère un lien mviwer à partir de donnée.s et d'une config xml |
+| `bbox_to_mviewer_url` | Génère un lien mviewer permalink à partir de données et d'une config xml |
 
 ### Enchaînement typique
 
 ```
-mviewer_check(url)
+check_mviewer(url)
   → load_xml(url)
     → list_themes()
       → list_layers_by_theme(theme)
-        → get_metadata(layer_id)          ← obligatoire avant spatial_query
-          → get_bbox(commune)             ← optionnel, si zone nommée
-            → spatial_query(layers, bbox)
+        → get_bbox(commune)             ← optionnel, si zone nommée
+          → spatial_analysis(bbox)      ← identifie les couches pertinentes
+            → get_metadata(layer_id)    ← obligatoire avant spatial_query
+              → spatial_query(layers, bbox)
+                → bbox_to_mviewer_url(bbox, layers)
 ```
 
 ## Installation
@@ -63,6 +66,14 @@ python main.py
 ```bash
 docker compose up --build
 ```
+
+## Configuration
+
+| Variable | Obligatoire | Description |
+|---|---|---|
+| `DEFAULT_CONFIG_URL` | Non | URL de la config mviewer chargée au démarrage. Sans elle, le serveur démarre sans contexte. |
+
+Copier `.env.example` en `.env` et ajuster si besoin.
 
 ## Endpoints
 
@@ -87,15 +98,16 @@ mcp-mviewer-python/
 ├── shared.py                  # Config globale et contexte en mémoire
 ├── playground.py              # Interface web de test
 ├── tools/
-│   ├── bbox_to_mviewer_url.py
+│   ├── mviewer_check.py       # Validation d'une URL config.xml (expose `check_mviewer`)
 │   ├── load_xml.py
 │   ├── list_themes.py
 │   ├── list_layers_by_theme.py
 │   ├── list_all_layers.py
 │   ├── get_metadata.py
-│   ├── spatial_query.py
 │   ├── get_bbox.py
-│   └── mviewer_check.py
+│   ├── spatial_analysis.py
+│   ├── spatial_query.py
+│   └── bbox_to_mviewer_url.py
 ├── requirements.txt
 ├── Dockerfile
 └── docker-compose.yml
@@ -105,4 +117,5 @@ mcp-mviewer-python/
 
 - Le contexte (config chargée) est **en mémoire** : il est réinitialisé au redémarrage et partagé entre toutes les sessions simultanées.
 - `spatial_query` retourne **50 entités maximum** par donnée, avec un timeout de 30 secondes.
+- `spatial_analysis` interroge toutes les couches en parallèle (15 max simultanés) avec un timeout de 15 secondes par couche.
 - `get_bbox` utilise **geo.api.gouv.fr** et ne couvre que les communes françaises.
