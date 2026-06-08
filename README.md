@@ -15,8 +15,7 @@ mcp-mviewer-python
    └── Exécute des requêtes WFS
          │
          ├── Services WFS (données géographiques)
-         ├── Services CSW (métadonnées)
-         └── geo.api.gouv.fr (géocodage communes)
+         └── Services CSW (métadonnées)
 ```
 
 ## Outils MCP exposés
@@ -43,7 +42,7 @@ check_mviewer(url)
       → list_layers_by_theme(theme)
         → get_bbox(commune)             ← optionnel, si zone nommée
           → spatial_analysis(bbox)      ← identifie les couches pertinentes
-            → get_metadata(layer_id)    ← obligatoire avant spatial_query
+            → get_metadata(layer_id)  ← obligatoire avant spatial_query
               → spatial_query(layers, bbox)
                 → bbox_to_mviewer_url(bbox, layers)
 ```
@@ -96,7 +95,7 @@ mcp-mviewer-python/
 ├── shared.py                  # Config globale et contexte en mémoire
 ├── playground.py              # Interface web de test
 ├── tools/
-│   ├── mviewer_check.py       # Validation d'une URL config.xml (expose `check_mviewer`)
+│   ├── check_mviewer.py
 │   ├── load_xml.py
 │   ├── list_themes.py
 │   ├── list_layers_by_theme.py
@@ -110,10 +109,3 @@ mcp-mviewer-python/
 ├── Dockerfile
 └── docker-compose.yml
 ```
-
-## Limites
-
-- Le contexte (config chargée) est **en mémoire** : il est réinitialisé au redémarrage et partagé entre toutes les sessions simultanées.
-- `spatial_query` retourne **50 entités maximum** par donnée, avec un timeout de 30 secondes.
-- `spatial_analysis` interroge toutes les couches en parallèle (15 max simultanés) avec un timeout de 15 secondes par couche.
-- `get_bbox` utilise **geo.api.gouv.fr** et ne couvre que les communes françaises.
