@@ -69,11 +69,9 @@ docker compose up --build
 
 ## Configuration
 
-| Variable | Obligatoire | Description |
+| Variable | Défaut | Description |
 |---|---|---|
-| `DEFAULT_CONFIG_URL` | Non | URL de la config mviewer chargée au démarrage. Sans elle, le serveur démarre sans contexte. |
-
-Copier `.env.example` en `.env` et ajuster si besoin.
+| `DEFAULT_CONFIG_URL` | `https://geobretagne.fr/apps/viz/config.xml` | URL de la config mviewer chargée au démarrage. |
 
 ## Endpoints
 
