@@ -9,7 +9,7 @@ import tools.list_themes
 import tools.get_metadata
 import tools.spatial_query
 import tools.get_bbox
-import tools.mviewer_check
+import tools.check_mviewer
 import tools.spatial_analysis
 
 import asyncio
